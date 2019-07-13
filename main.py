@@ -30,21 +30,36 @@ stock_A = stock.Stock(ticker_a)
 stock_B = stock.Stock(ticker_b)
 
 for i in range (0, len(a_data["timestamp"])):
-    stock_A.date.append(datetime.fromtimestamp(int(str(a_data["timestamp"][i])[:-3])))
+    stock_A.date.append(datetime.fromtimestamp(int(a_data["timestamp"][i])/1000))
     stock_A.closing_price.append(a_data["close"][i])
 
 for i in range (0, len(b_data["timestamp"])):
-    stock_B.date.append(datetime.fromtimestamp(int(str(b_data["timestamp"][i])[:-3])))
+    stock_B.date.append(datetime.fromtimestamp(int(b_data["timestamp"][i])/1000))
     stock_B.closing_price.append(b_data["close"][i])
 
 print("----{}----".format(stock_A.ticker))
-a_mean = np.mean(stock_A.closing_price)
-print("mean of {}: ".format(stock_A.ticker), np.mean(stock_A.closing_price)) 
-print("s.d of {}: ".format(stock_A.ticker), np.std(stock_A.closing_price)) 
-print("variance of {}: ".format(stock_A.ticker), np.var(stock_A.closing_price))
+print("mean return of {}: ".format(stock_A.ticker), stock_A.get_average()) 
+print("s.d of {}: ".format(stock_A.ticker), stock_A.get_stddev()) 
+print("variance of {}: ".format(stock_A.ticker), stock_A.get_var())
 
-print("----{}----".format(ticker_b))
-b_mean = np.mean(stock_B.closing_price)
-print("mean of {}: ".format(stock_B.ticker), np.mean(stock_B.closing_price)) 
-print("s.d of {}: ".format(stock_B.ticker), np.std(stock_B.closing_price)) 
-print("variance of {}: ".format(stock_B.ticker), np.var(stock_B.closing_price))
+print("----{}----".format(stock_B.ticker))
+print("mean return of {}: ".format(stock_B.ticker), stock_B.get_average()) 
+print("s.d of {}: ".format(stock_B.ticker), stock_B.get_stddev()) 
+print("variance of {}: ".format(stock_B.ticker), stock_B.get_var())
+
+portfolios = []
+for i in range(0, 41):
+    portfolio_return = [ stock_A.get_returns()[j] * i * 0.025 + stock_B.get_returns()[j] * (1 - i * 0.025) for j in range(0, len(stock_A.get_returns())) ]
+    portfolio_stddev = np.std(portfolio_return)
+    portfolio_var = np.var(portfolio_return)
+    portfolio_avg_return = np.mean(portfolio_return)
+
+    portfolios.append(stock.Portfolio(portfolio_stddev, portfolio_var, portfolio_avg_return, i))
+
+min_portfolio = min(portfolios)
+
+print()
+print("MVP proportion {} {}".format(stock_A.ticker, min_portfolio.proportion))
+print("MVP proportion {} {}".format(stock_B.ticker, 1 - min_portfolio.proportion))
+print("MVP standard deviation {}".format(min_portfolio.stddev))
+print("MVP expected porfolio return {}".format(min_portfolio.avg_return))
