@@ -1,2 +1,3 @@
 yahoo_finance_api2
 numpy
+flask
