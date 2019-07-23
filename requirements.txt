@@ -1,4 +1,5 @@
 yahoo_finance_api2
 numpy
+scipy
 flask
 gunicorn
