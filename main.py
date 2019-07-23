@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 from scipy import optimize
 import stock
@@ -32,6 +33,10 @@ class sharpe_optimizer:
 
 
 def main(ticker_a=None, ticker_b=None):
+    logging.basicConfig()
+    logger = logging.getLogger(__name__)
+    logger.setLevel("INFO")
+
     if not ticker_a:
         ticker_a = input("Enter stock ticker A\n")
     if not ticker_b:
@@ -40,15 +45,15 @@ def main(ticker_a=None, ticker_b=None):
     stock_A = stock.Stock(ticker_a)
     stock_B = stock.Stock(ticker_b)
 
-    print("----{}----".format(stock_A.ticker))
-    print("mean return of {}: ".format(stock_A.ticker), stock_A.get_annual_return())
-    print("s.d of {}: ".format(stock_A.ticker), stock_A.get_stddev()) 
-    print("variance of {}: ".format(stock_A.ticker), stock_A.get_var())
+    logger.info("----{}----".format(stock_A.ticker))
+    logger.info("mean return of {}: {}".format(stock_A.ticker, stock_A.get_annual_return()))
+    logger.info("s.d of {}: {}".format(stock_A.ticker, stock_A.get_stddev()))
+    logger.info("variance of {}: {}".format(stock_A.ticker, stock_A.get_var()))
 
-    print("----{}----".format(stock_B.ticker))
-    print("mean return of {}: ".format(stock_B.ticker), stock_B.get_annual_return())
-    print("s.d of {}: ".format(stock_B.ticker), stock_B.get_stddev()) 
-    print("variance of {}: ".format(stock_B.ticker), stock_B.get_var())
+    logger.info("----{}----".format(stock_B.ticker))
+    logger.info("mean return of {}: {}".format(stock_B.ticker, stock_B.get_annual_return()))
+    logger.info("s.d of {}: {}".format(stock_B.ticker, stock_B.get_stddev()))
+    logger.info("variance of {}: {}".format(stock_B.ticker, stock_B.get_var()))
 
     portfolios = []
     for i in range(0, 41):
@@ -62,23 +67,23 @@ def main(ticker_a=None, ticker_b=None):
 
     min_portfolio = min(portfolios)
 
-    print()
-    print("MVP proportion {} {}".format(stock_A.ticker, min_portfolio.proportion))
-    print("MVP proportion {} {}".format(stock_B.ticker, 1 - min_portfolio.proportion))
-    print("MVP standard deviation {}".format(min_portfolio.stddev))
-    print("MVP expected portfolio return {}".format(min_portfolio.avg_return))
+    logger.info("")
+    logger.info("MVP proportion {} {}".format(stock_A.ticker, min_portfolio.proportion))
+    logger.info("MVP proportion {} {}".format(stock_B.ticker, 1 - min_portfolio.proportion))
+    logger.info("MVP standard deviation {}".format(min_portfolio.stddev))
+    logger.info("MVP expected portfolio return {}".format(min_portfolio.avg_return))
 
     sharpe = sharpe_optimizer(stock_A, stock_B, 0.02)
 
-    print()
-    print("Case 1:")
-    print("Proportion in risk free: 0%")
-    print("Proportion in market portfolio: 100%")
-    print("Maximum Sharpe Ratio: {}".format(sharpe.sharpe))
-    print("Market portfolio proportion {}: {}%".format(stock_A.ticker, sharpe.result.x[0] * 100))
-    print("Market portfolio proportion {}: {}%".format(stock_B.ticker, sharpe.result.x[1] * 100))
-    print("Market portfolio expected return: {}%".format(sharpe.avg_return * 100))
-    print("Market portfolio standard deviation: {}%".format(sharpe.stddev * 100))
+    logger.info("")
+    logger.info("Case 1:")
+    logger.info("Proportion in risk free: 0%")
+    logger.info("Proportion in market portfolio: 100%")
+    logger.info("Maximum Sharpe Ratio: {}".format(sharpe.sharpe))
+    logger.info("Market portfolio proportion {}: {}%".format(stock_A.ticker, sharpe.result.x[0] * 100))
+    logger.info("Market portfolio proportion {}: {}%".format(stock_B.ticker, sharpe.result.x[1] * 100))
+    logger.info("Market portfolio expected return: {}%".format(sharpe.avg_return * 100))
+    logger.info("Market portfolio standard deviation: {}%".format(sharpe.stddev * 100))
 
     return {
             "stocks": [
