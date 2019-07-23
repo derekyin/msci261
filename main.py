@@ -1,4 +1,5 @@
 import logging
+from typing import List
 import numpy as np
 from scipy import optimize
 import stock
@@ -14,10 +15,10 @@ class sharpe_optimizer:
         return f
 
 
-    def __init__(self, stock_A, stock_B, risk_free_rate, allow_short=False):
-        profits = [stock_A.get_returns(), stock_B.get_returns()]
+    def __init__(self, stocks : List[stock.Stock], risk_free_rate, allow_short=False):
+        profits = [stock.get_returns() for stock in stocks]
         x = np.ones(len(profits))
-        mean_vector = [stock_A.get_annual_return(), stock_B.get_annual_return()]
+        mean_vector = [stock.get_annual_return() for stock in stocks]
         cov_matrix = np.cov(profits)
         cons = ({'type': 'eq',
                  'fun': lambda x: np.sum(x) - 1})
@@ -73,7 +74,7 @@ def main(ticker_a=None, ticker_b=None):
     logger.info("MVP standard deviation {}".format(min_portfolio.stddev))
     logger.info("MVP expected portfolio return {}".format(min_portfolio.avg_return))
 
-    sharpe = sharpe_optimizer(stock_A, stock_B, 0.02)
+    sharpe = sharpe_optimizer([stock_A, stock_B], 0.02)
 
     logger.info("")
     logger.info("Case 1:")
@@ -84,6 +85,24 @@ def main(ticker_a=None, ticker_b=None):
     logger.info("Market portfolio proportion {}: {}%".format(stock_B.ticker, sharpe.result.x[1] * 100))
     logger.info("Market portfolio expected return: {}%".format(sharpe.avg_return * 100))
     logger.info("Market portfolio standard deviation: {}%".format(sharpe.stddev * 100))
+
+    case2 = stock.Portfolio(0.5 * sharpe.stddev, 0.5**2 * sharpe.stddev**2, 0.5 * (0.02 + sharpe.avg_return), 0.5)
+    case3 = stock.Portfolio(1.5 * sharpe.stddev, 1.5**2 * sharpe.stddev**2, -0.5 * 0.02 + 1.5 * sharpe.avg_return, -0.5)
+
+    logger.info("")
+    logger.info("Case 2:")
+    logger.info("Proportion in risk free: 50%")
+    logger.info("Proportion in market portfolio: 50%")
+    logger.info("Market portfolio expected return: {}%".format(case2.avg_return * 100))
+    logger.info("Market portfolio standard deviation: {}%".format(case2.stddev * 100))
+
+    logger.info("")
+    logger.info("Case 3:")
+    logger.info("Proportion in risk free: -50%")
+    logger.info("Proportion in market portfolio: 150%")
+    logger.info("Market portfolio expected return: {}%".format(case3.avg_return * 100))
+    logger.info("Market portfolio standard deviation: {}%".format(case3.stddev * 100))
+
 
     return {
             "stocks": [
@@ -107,6 +126,18 @@ def main(ticker_a=None, ticker_b=None):
                 "sd": min_portfolio.stddev
             },
             "cml": [
+                {
+                    "prop_rf": -0.5,
+                    "prop_market": 1.5,
+                    "annual_return": case3.avg_return,
+                    "sd": case3.stddev
+                },
+                {
+                    "prop_rf": 0.5,
+                    "prop_market": 0.5,
+                    "annual_return": case2.avg_return,
+                    "sd": case2.stddev
+                },
                 {
                     "prop_rf": 0,
                     "prop_market": 1,
