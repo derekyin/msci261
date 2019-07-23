@@ -41,12 +41,12 @@ def main(ticker_a=None, ticker_b=None):
     stock_B = stock.Stock(ticker_b)
 
     print("----{}----".format(stock_A.ticker))
-    print("mean return of {}: ".format(stock_A.ticker), stock_A.get_average()) 
+    print("mean return of {}: ".format(stock_A.ticker), stock_A.get_annual_return())
     print("s.d of {}: ".format(stock_A.ticker), stock_A.get_stddev()) 
     print("variance of {}: ".format(stock_A.ticker), stock_A.get_var())
 
     print("----{}----".format(stock_B.ticker))
-    print("mean return of {}: ".format(stock_B.ticker), stock_B.get_average()) 
+    print("mean return of {}: ".format(stock_B.ticker), stock_B.get_annual_return())
     print("s.d of {}: ".format(stock_B.ticker), stock_B.get_stddev()) 
     print("variance of {}: ".format(stock_B.ticker), stock_B.get_var())
 
@@ -81,22 +81,36 @@ def main(ticker_a=None, ticker_b=None):
     print("Market portfolio standard deviation: {}%".format(sharpe.stddev * 100))
 
     return {
-            "stock_a": {
-                "ticker": ticker_a,
-                "mean": stock_A.get_average(),
-                "sd": stock_A.get_stddev()
-            },
-            "stock_b": {
-                "ticker": ticker_b,
-                "mean": stock_B.get_average(),
-                "sd": stock_B.get_stddev()
-            },
-            "mvp":{
+            "stocks": [
+                {
+                    "ticker": ticker_a,
+                    "mean_daily": stock_A.get_average(),
+                    "mean_annual": stock_A.get_annual_return(),
+                    "sd": stock_A.get_stddev()
+                },
+                {
+                    "ticker": ticker_b,
+                    "mean_daily": stock_B.get_average(),
+                    "mean_annual": stock_B.get_annual_return(),
+                    "sd": stock_B.get_stddev()
+                }
+            ],
+            "mvp": {
                 "prop_a": min_portfolio.proportion,
                 "prop_b": 1-min_portfolio.proportion,
                 "return": min_portfolio.avg_return,
                 "sd": min_portfolio.stddev
-            }
+            },
+            "cml": [
+                {
+                    "prop_rf": 0,
+                    "prop_market": 1,
+                    "sharpe": sharpe.sharpe,
+                    "market": sharpe.result.x.tolist(),
+                    "annual_return": sharpe.avg_return,
+                    "sd": sharpe.stddev
+                }
+            ]
         }
 
 if __name__ == '__main__':

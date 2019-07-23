@@ -35,7 +35,7 @@ class Stock:
         return self.returns
     
     def get_annual_return(self):
-        return self.closing_price[-1] / self.closing_price[0] - 1
+        return (1 + self.get_average()) ** len(self.get_returns()) - 1
 
     def get_average(self):
         return self.average
