@@ -3,15 +3,12 @@ from typing import List
 import numpy as np
 from scipy import optimize
 import stock
+from stock import stddev
 
 class sharpe_optimizer:
-    def __stddev(self, x, cov_matrix):
-        return np.sqrt(x.dot(cov_matrix).dot(x.T))
-
-
-    def __target_func(self, x, cov_matrix, mean_vector, risk_free_rate):
+    def __sharpe_ratio(self, x, cov_matrix, mean_vector, risk_free_rate):
         # maximize by minimizing the negative version
-        f = float(-(x.dot(mean_vector) - risk_free_rate) / self.__stddev(x, cov_matrix))
+        f = float(-(x.dot(mean_vector) - risk_free_rate) / stddev(x, cov_matrix))
         return f
 
 
@@ -26,11 +23,24 @@ class sharpe_optimizer:
             bounds = [(0, None,) for i in range(len(x))]
         else:
             bounds = None
-        self.result = optimize.minimize(self.__target_func, x, args=(cov_matrix, mean_vector, risk_free_rate,), bounds=bounds,
+        self.result = optimize.minimize(self.__sharpe_ratio, x, args=(cov_matrix, mean_vector, risk_free_rate,), bounds=bounds,
                                      constraints=cons)
-        self.sharpe = -self.__target_func(self.result.x, cov_matrix, mean_vector, risk_free_rate)
-        self.stddev = self.__stddev(self.result.x, cov_matrix)
+        self.sharpe = -self.__sharpe_ratio(self.result.x, cov_matrix, mean_vector, risk_free_rate)
+        self.stddev = stddev(self.result.x, cov_matrix)
         self.avg_return = self.result.x.dot(mean_vector)
+
+
+class mvp_optimizer:
+    def __init__(self, stocks : List[stock.Stock]):
+        profits = [stock.get_returns() for stock in stocks]
+        x = np.ones(len(profits))
+        mean_vector = [stock.get_annual_return() for stock in stocks]
+        cov_matrix = np.cov(profits)
+        cons = ({'type': 'eq',
+                 'fun': lambda x: np.sum(x) - 1})
+        bounds = [(0, 1) for i in range(len(x))]
+        self.result = optimize.minimize(stddev, x, args=(cov_matrix), bounds=bounds,
+                constraints=cons)
 
 
 def main(ticker_a=None, ticker_b=None):
@@ -56,21 +66,12 @@ def main(ticker_a=None, ticker_b=None):
     logger.info("s.d of {}: {}".format(stock_B.ticker, stock_B.get_stddev()))
     logger.info("variance of {}: {}".format(stock_B.ticker, stock_B.get_var()))
 
-    portfolios = []
-    for i in range(0, 41):
-        portfolio_return = [ stock_A.get_returns()[j] * i * 0.025 + stock_B.get_returns()[j] * (1 - i * 0.025) for j in range(0, len(stock_A.get_returns())) ]
-        portfolio_stddev = np.std(portfolio_return)
-        portfolio_var = np.var(portfolio_return)
-        portfolio_avg_return = stock_A.get_annual_return() * i * 0.025 + stock_B.get_annual_return() * (1 - i * 0.025)
-
-#        print("{},{}".format(portfolio_avg_return, portfolio_stddev))
-        portfolios.append(stock.Portfolio(portfolio_stddev, portfolio_var, portfolio_avg_return, i * 0.025))
-
-    min_portfolio = min(portfolios)
+    mvp = mvp_optimizer([stock_A, stock_B])
+    min_portfolio = stock.Portfolio(mvp.result.x, [stock_A, stock_B])
 
     logger.info("")
-    logger.info("MVP proportion {} {}".format(stock_A.ticker, min_portfolio.proportion))
-    logger.info("MVP proportion {} {}".format(stock_B.ticker, 1 - min_portfolio.proportion))
+    logger.info("MVP proportion {} {}".format(stock_A.ticker, min_portfolio.proportions[0]))
+    logger.info("MVP proportion {} {}".format(stock_B.ticker, min_portfolio.proportions[1]))
     logger.info("MVP standard deviation {}".format(min_portfolio.stddev))
     logger.info("MVP expected portfolio return {}".format(min_portfolio.avg_return))
 
@@ -86,8 +87,10 @@ def main(ticker_a=None, ticker_b=None):
     logger.info("Market portfolio expected return: {}%".format(sharpe.avg_return * 100))
     logger.info("Market portfolio standard deviation: {}%".format(sharpe.stddev * 100))
 
-    case2 = stock.Portfolio(0.5 * sharpe.stddev, 0.5**2 * sharpe.stddev**2, 0.5 * (0.02 + sharpe.avg_return), 0.5)
-    case3 = stock.Portfolio(1.5 * sharpe.stddev, 1.5**2 * sharpe.stddev**2, -0.5 * 0.02 + 1.5 * sharpe.avg_return, -0.5)
+    rf = stock.Stock.risk_free(0.02, stock_A)
+    market_portfolio = stock.Stock.combine(sharpe.result.x, [stock_A, stock_B])
+    case2 = stock.Portfolio(np.array([0.5, 0.5]), [rf, market_portfolio])
+    case3 = stock.Portfolio(np.array([-0.5, 1.5]), [rf, market_portfolio])
 
     logger.info("")
     logger.info("Case 2:")
@@ -120,8 +123,8 @@ def main(ticker_a=None, ticker_b=None):
                 }
             ],
             "mvp": {
-                "prop_a": min_portfolio.proportion,
-                "prop_b": 1-min_portfolio.proportion,
+                "prop_a": min_portfolio.proportions[0],
+                "prop_b": min_portfolio.proportions[1],
                 "return": min_portfolio.avg_return,
                 "sd": min_portfolio.stddev
             },
