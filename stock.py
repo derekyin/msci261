@@ -34,6 +34,9 @@ class Stock:
     def get_returns(self):
         return self.returns
     
+    def get_annual_return(self):
+        return (1 + self.get_average()) ** len(self.get_returns()) - 1
+
     def get_average(self):
         return self.average
 
@@ -48,7 +51,7 @@ class Portfolio:
         self.stddev = stddev
         self.var = var
         self.avg_return = avg_return
-        self.proportion = proportion * 0.025
+        self.proportion = proportion
 
     def __lt__(self, other):
         return self.var < other.var
