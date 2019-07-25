@@ -1,65 +1,89 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<head>
+		<!-- Required meta tags -->
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    
-    <title>MSCI 261 Project</title>
-  </head>
-  <body>
+		<!-- Bootstrap CSS -->
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+		
+		<title>MSCI 261 Project</title>
+	</head>
+	<body>
 
-    <div class="container">
-      <h2>Enter stock info</h2>
-      <div class="input-group mb-3">
-        <div class="input-group-prepend">
-          <span class="input-group-text" id="basic-addon1">$</span>
-        </div>
-        <input type="text" id="inputa" class="form-control" placeholder="Stock A Ticker" aria-label="Username" aria-describedby="basic-addon1">
-      </div>
+	<div class="container">
+		<h2>Enter stock info</h2>
+	  	<div class="input-group mb-3">
+			<div class="input-group-prepend">
+		  		<span class="input-group-text" id="basic-addon1">$</span>
+			</div>
+		<input type="text" id="inputa" class="form-control" placeholder="Stock A Ticker" aria-label="Username" aria-describedby="basic-addon1">
+	  	</div>
 
-      <div class="input-group mb-3">
-        <div class="input-group-prepend">
-          <span class="input-group-text" id="basic-addon2">$</span>
-        </div>
-        <input type="text" id="inputb" class="form-control" placeholder="Stock B Ticker" aria-label="Username" aria-describedby="basic-addon1">
-      </div>
-      <button type="button" id="submitbutton" class="btn btn-primary btn-lg">Submit</button>
-    </div>
+		<div class="input-group mb-3">
+			<div class="input-group-prepend">
+				<span class="input-group-text" id="basic-addon2">$</span>
+			</div>
+			<input type="text" id="inputb" class="form-control" placeholder="Stock B Ticker" aria-label="Username" aria-describedby="basic-addon1">
+		</div>
+		<button type="button" id="submitbutton" class="btn btn-primary btn-lg">Submit</button>
+	  
+	  	<table class="table table-striped">
+			<thead>
+				<tr>
+					<th scope="col">Stock</th>
+					<th scope="col">mean daily</th>
+					<th scope="col">mean annual</th>
+					<th scope="col">standard deviation</th>
+				</tr>
+			</thead>
+			<tbody id="resultstable"></tbody>
+		</table>
+	</div>
 
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-    <script>
-        
-        $("#submitbutton").click(function(){
-            const data = {
-                a:$("#inputa").val(),
-                b:$("#inputb").val()
-            }
+	<!-- Optional JavaScript -->
+	<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+	<script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+	<script>
+		
+		$("#submitbutton").click(function(){
+			const data = {
+				a:$("#inputa").val(),
+				b:$("#inputb").val()
+			}
 
-            var settings = {
-                "async": true,
-                "crossDomain": true,
-                "url": "/stocks",
-                "method": "POST",
-                "headers": {
-                    "Content-Type": "application/json",
-                },
-                "processData": false,
-                "data": JSON.stringify(data)
-                }
+			var settings = {
+				"async": true,
+				"crossDomain": true,
+				"url": "/stocks",
+				"method": "POST",
+				"headers": {
+					"Content-Type": "application/json",
+					},
+				"processData": false,
+				"data": JSON.stringify(data)
+			}
 
-            $.ajax(settings).done(function (response) {
-                console.log(response);
-            });
-        })
+			$.ajax(settings).done(function (response) {
 
-    </script>
-  </body>
+				$("#resultstable").append("<tr id=\"stocka\"><th scope=\"row\">" + response.stock_a.ticker+" </th>");
+				for (x in response.stock_a){
+					$("#stocka").append("<td>" + response.stock_a[x]+ "</td>");
+				}
+				$("#resultstable").append("</tr>");
+
+				$("#resultstable").append("<tr id=\"stockb\"><th scope=\"row\">" + response.stock_b.ticker+" </th>");
+				for (x in response.stock_b){
+					$("#stockb").append("<td>" + response.stock_b[x]+ "</td>");
+				}
+				$("#resultstable").append("</tr>");
+
+			});
+		})
+
+		</script>
+	</body>
 </html>
