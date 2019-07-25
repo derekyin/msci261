@@ -1,10 +1,10 @@
+from copy import copy
 from datetime import datetime
 from typing import List
-from copy import copy
-import logging
 from yahoo_finance_api2 import share
-from yahoo_finance_api2.exceptions import YahooFinanceError
+import logging
 import numpy as np
+import sys
 
 def stddev(x, cov_matrix):
     return np.sqrt(x.dot(cov_matrix).dot(x.T))
@@ -18,12 +18,10 @@ class Stock:
         _data = None
 
         _share = share.Share(self.ticker)
-        try:
-            _data = _share.get_historical(
-                    share.PERIOD_TYPE_YEAR, 1, share.FREQUENCY_TYPE_DAY, 1)
-        except YahooFinanceError as e:
-            logging.getLogger(__name__).critical(e.message)
-            sys.exit(1)
+        _data = _share.get_historical(
+                share.PERIOD_TYPE_YEAR, 1, share.FREQUENCY_TYPE_DAY, 1)
+        if not _data:
+            raise ValueError("No data on stock {}".format(ticker))
 
         for i in range (0, len(_data["timestamp"])):
             self.date.append(

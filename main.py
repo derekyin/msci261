@@ -1,9 +1,12 @@
-import logging
-from typing import List
-import numpy as np
+from random import random
 from scipy import optimize
-import stock
 from stock import stddev
+from typing import List
+from yahoo_finance_api2.exceptions import YahooFinanceError
+import logging
+import numpy as np
+import stock
+import urllib.request, json 
 
 class sharpe_optimizer:
     def __sharpe_ratio(self, x, cov_matrix, mean_vector, risk_free_rate):
@@ -42,6 +45,88 @@ class mvp_optimizer:
         self.result = optimize.minimize(stddev, x, args=(cov_matrix), bounds=bounds,
                 constraints=cons)
 
+def find_random_portfolio():
+    all_tickers = [
+        "AN",
+        "BFRA",
+        "BFS",
+        "CACC",
+        "CBO",
+        "CNA",
+        "CRMD",
+        "CTAS",
+        "DGL",
+        "ENLV",
+        "EWRE",
+        "FBIO",
+        "FEIM",
+        "FLDM",
+        "FLGR",
+        "FLR",
+        "FMAT",
+        "GSHD",
+        "HASI",
+        "HFBL",
+        "HJV",
+        "HK",
+        "HOLD",
+        "IFGL",
+        "INFI",
+        "JASN",
+        "JHX",
+        "JJE",
+        "LQDI",
+        "NIB",
+        "RBUS",
+        "RVRS",
+        "RYJ",
+        "SHOS",
+        "UEIC",
+        "UTI",
+        "UUU",
+        "VCYT",
+        "VFLQ",
+        "VNQ",
+        "VO",
+        "WLKP",
+        "WPM",
+        "XTH",
+    ]
+
+    random_stocks = []
+    random_tickers = []
+    random_portfolio = None
+    found = False
+    while not found:
+        random_tickers = []
+        random_stocks = []
+        n_period = None
+        while len(random_stocks) < 10:
+            try:
+                _stock = stock.Stock(all_tickers[int(len(all_tickers) * random())])
+            except:
+                continue
+            if _stock.ticker in random_tickers:
+                continue
+            elif not n_period:
+                n_period = len(_stock.returns)
+            elif n_period != len(_stock.returns):
+                continue
+            random_stocks.append(_stock)
+            random_tickers.append(_stock.ticker)
+            if len(random_stocks) > 4:
+                _proportions = np.array([1/len(random_stocks)] * len(random_stocks))
+                random_portfolio = stock.Portfolio(_proportions, random_stocks)
+                if random_portfolio.stddev < 0.05 and random_portfolio.avg_return > 0.1:
+                    found = True
+                    break
+    return {
+                "tickers": [s.ticker for s in random_portfolio.stocks],
+                "proportions": random_portfolio.proportions.tolist(),
+                "annual_return": random_portfolio.avg_return,
+                "stddev": random_portfolio.stddev
+            }
+
 
 def main(ticker_a=None, ticker_b=None):
     logging.basicConfig()
@@ -53,8 +138,17 @@ def main(ticker_a=None, ticker_b=None):
     if not ticker_b:
         ticker_b = input("Enter stock ticker B\n")
 
-    stock_A = stock.Stock(ticker_a)
-    stock_B = stock.Stock(ticker_b)
+    try:
+        stock_A = stock.Stock(ticker_a)
+        stock_B = stock.Stock(ticker_b)
+    except YahooFinanceError as e:
+        return {
+                "error": e.message
+            }
+    except ValueError as e:
+        return {
+                "error": str(e)
+            }
 
     logger.info("----{}----".format(stock_A.ticker))
     logger.info("mean return of {}: {}".format(stock_A.ticker, stock_A.get_annual_return()))
@@ -105,7 +199,6 @@ def main(ticker_a=None, ticker_b=None):
     logger.info("Proportion in market portfolio: 150%")
     logger.info("Market portfolio expected return: {}%".format(case3.avg_return * 100))
     logger.info("Market portfolio standard deviation: {}%".format(case3.stddev * 100))
-
 
     return {
             "stocks": [
