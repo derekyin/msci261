@@ -6,7 +6,6 @@ from yahoo_finance_api2.exceptions import YahooFinanceError
 import logging
 import numpy as np
 import stock
-import urllib.request, json 
 
 class sharpe_optimizer:
     def __sharpe_ratio(self, x, cov_matrix, mean_vector, risk_free_rate):
