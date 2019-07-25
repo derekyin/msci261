@@ -6,6 +6,7 @@ import logging
 import numpy as np
 import sys
 
+
 def stddev(x, cov_matrix):
     return np.sqrt(x.dot(cov_matrix).dot(x.T))
 
@@ -19,13 +20,13 @@ class Stock:
 
         _share = share.Share(self.ticker)
         _data = _share.get_historical(
-                share.PERIOD_TYPE_YEAR, 1, share.FREQUENCY_TYPE_DAY, 1)
+            share.PERIOD_TYPE_YEAR, 1, share.FREQUENCY_TYPE_DAY, 1)
         if not _data:
             raise ValueError("No data on stock {}".format(ticker))
 
-        for i in range (0, len(_data["timestamp"])):
+        for i in range(0, len(_data["timestamp"])):
             self.date.append(
-                    datetime.fromtimestamp(int(_data["timestamp"][i])/1000))
+                datetime.fromtimestamp(int(_data["timestamp"][i])/1000))
             self.closing_price.append(_data["close"][i])
 
         self.returns = []
@@ -34,7 +35,7 @@ class Stock:
                 self.returns.append(0)
             else:
                 self.returns.append(
-                        self.closing_price[i]/self.closing_price[i-1] - 1)
+                    self.closing_price[i]/self.closing_price[i-1] - 1)
 
         self.average = np.mean(self.get_returns())
         self.stddev = np.std(self.get_returns())
@@ -42,7 +43,7 @@ class Stock:
 
     def get_returns(self):
         return self.returns
-    
+
     def get_annual_return(self):
         return (1 + self.get_average()) ** len(self.get_returns()) - 1
 
@@ -56,17 +57,20 @@ class Stock:
         return self.stddev
 
     @classmethod
-    def combine(cls, proportions : np.ndarray, stocks : List):
+    def combine(cls, proportions: np.ndarray, stocks: List):
         combined = copy(stocks[0])
-        combined.ticker = "portfolio " + " ".join([stock.ticker for stock in stocks])
+        combined.ticker = "portfolio " + \
+            " ".join([stock.ticker for stock in stocks])
         combined.closing_price = []
         combined.returns = []
 
         for i in range(len(stocks[0].closing_price)):
-            combined.closing_price.append(proportions.dot([stock.closing_price[i] for stock in stocks]))
+            combined.closing_price.append(proportions.dot(
+                [stock.closing_price[i] for stock in stocks]))
 
         for i in range(len(stocks[0].returns)):
-            combined.returns.append(proportions.dot([stock.returns[i] for stock in stocks]))
+            combined.returns.append(proportions.dot(
+                [stock.returns[i] for stock in stocks]))
 
         combined.average = np.mean(combined.get_returns())
 
@@ -74,7 +78,6 @@ class Stock:
         combined.stddev = tmp.stddev
         combined.var = tmp.var
         return combined
-
 
     @classmethod
     def risk_free(cls, rate, other):
@@ -87,17 +90,19 @@ class Stock:
         rf.var = 0
         return rf
 
+
 class Portfolio:
-    def __init__(self, proportions : np.ndarray, stocks : List[Stock]):
+    def __init__(self, proportions: np.ndarray, stocks: List[Stock]):
         self.proportions = proportions
         self.stocks = stocks
         self.cov_matrix = np.cov([stock.get_returns() for stock in stocks])
         self.stddev = stddev(self.proportions, self.cov_matrix)
         self.var = self.stddev**2
-        self.avg_return = proportions.dot([stock.get_annual_return() for stock in stocks])
+        self.avg_return = proportions.dot(
+            [stock.get_annual_return() for stock in stocks])
 
     def __lt__(self, other):
         return self.var < other.var
-    
+
     def __gt__(self, other):
         return self.var > other.var
