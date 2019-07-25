@@ -30,8 +30,11 @@ class Stock:
 
         self.returns = []
         for i in range(1, len(self.closing_price)):
-            self.returns.append(
-                    self.closing_price[i]/self.closing_price[i-1] - 1)
+            if not self.closing_price[i] or not self.closing_price[i-1]:
+                self.returns.append(0)
+            else:
+                self.returns.append(
+                        self.closing_price[i]/self.closing_price[i-1] - 1)
 
         self.average = np.mean(self.get_returns())
         self.stddev = np.std(self.get_returns())

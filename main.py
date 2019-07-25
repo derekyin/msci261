@@ -149,6 +149,11 @@ def main(ticker_a=None, ticker_b=None):
                 "error": str(e)
             }
 
+    if len(stock_A.returns) != len(stock_B.returns):
+        return {
+                "error": "{} and {} cannot be compared. Different trading dates.".format(ticker_a, ticker_b)
+            }
+
     logger.info("----{}----".format(stock_A.ticker))
     logger.info("mean return of {}: {}".format(stock_A.ticker, stock_A.get_annual_return()))
     logger.info("s.d of {}: {}".format(stock_A.ticker, stock_A.get_stddev()))
