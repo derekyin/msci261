@@ -40,6 +40,60 @@
 			</thead>
 			<tbody id="resultstable"></tbody>
 		</table>
+
+		<h2>MVP portfolio</h2>
+		<table class="table table-striped">
+			<thead>
+				<tr>
+					<th scope="col" id="stockaticker">proportion stock a</th>
+					<th scope="col" id="stockbticker">proportion stock b</th>
+					<th scope="col">return</th>
+					<th scope="col">standard deviation</th>
+				</tr>
+			</thead>
+			<tbody id="mvptable"></tbody>
+		</table>
+
+		<h2>Case 3</h2>
+		<table class="table table-striped">
+			<thead>
+				<tr>
+					<th scope="col">Annual return</th>
+					<th scope="col">Proportion market</th>
+					<th scope="col">Proportion risk free</th>
+					<th scope="col">Standard deviation</th>
+				</tr>
+			</thead>
+			<tbody id="case3table"></tbody>
+		</table>
+
+		<h2>Case 2</h2>
+		<table class="table table-striped">
+			<thead>
+				<tr>
+					<th scope="col">Annual return</th>
+					<th scope="col">Proportion market</th>
+					<th scope="col">Proportion risk free</th>
+					<th scope="col">Standard deviation</th>
+				</tr>
+			</thead>
+			<tbody id="case2table"></tbody>
+		</table>
+
+		<h2>Case 1</h2>
+		<table class="table table-striped">
+			<thead>
+				<tr>
+					<th scope="col">Annual return</th>
+					<th scope="col">Market</th>
+					<th scope="col">Proportion market</th>
+					<th scope="col">Proportion risk free</th>
+					<th scope="col">Standard deviation</th>
+					<th scope="col">Sharpe</th>
+				</tr>
+			</thead>
+			<tbody id="case1table"></tbody>
+		</table>
 	</div>
 
 	<!-- Optional JavaScript -->
@@ -50,6 +104,7 @@
 	<script>
 		
 		$("#submitbutton").click(function(){
+
 			const data = {
 				a:$("#inputa").val(),
 				b:$("#inputb").val()
@@ -69,18 +124,47 @@
 
 			$.ajax(settings).done(function (response) {
 
-				$("#resultstable").append("<tr id=\"stocka\"><th scope=\"row\">" + response.stock_a.ticker+" </th>");
-				for (x in response.stock_a){
-					$("#stocka").append("<td>" + response.stock_a[x]+ "</td>");
+				$("#resultstable").append("<tr id=\"stocka\"><th scope=\"row\">" + response.stocks[0].ticker+" </th>");
+				for (x in response.stocks[0]){
+					$("#stocka").append("<td>" + response.stocks[0][x]+ "</td>");
 				}
 				$("#resultstable").append("</tr>");
 
-				$("#resultstable").append("<tr id=\"stockb\"><th scope=\"row\">" + response.stock_b.ticker+" </th>");
-				for (x in response.stock_b){
-					$("#stockb").append("<td>" + response.stock_b[x]+ "</td>");
+				$("#resultstable").append("<tr id=\"stockb\"><th scope=\"row\">" + response.stocks[1].ticker+" </th>");
+				for (x in response.stocks[1]){
+					$("#stockb").append("<td>" + response.stocks[1][x]+ "</td>");
 				}
 				$("#resultstable").append("</tr>");
 
+
+				$("#mvptable").append("<tr id=\"mvp\">");
+				for (x in response.mvp){
+					$("#mvp").append("<td>" + response.mvp[x]+ "</td>");
+				}
+				$("#mvptable").append("</tr>");
+				$("#stockaticker" ).html("proportion " + $("#inputa").val());
+				$("#stockbticker" ).html("proportion " + $("#inputb").val());
+
+
+				$("#case3table").append("<tr id=\"case3\">");
+				for (x in response.cml[0]){
+					$("#case3").append("<td>" + response.cml[0][x]+ "</td>");
+				}
+				$("#case3table").append("</tr>");
+				
+				
+				$("#case2table").append("<tr id=\"case2\">");
+				for (x in response.cml[1]){
+					$("#case2").append("<td>" + response.cml[1][x]+ "</td>");
+				}
+				$("#case2table").append("</tr>");
+
+
+				$("#case1table").append("<tr id=\"case1\">");
+				for (x in response.cml[2]){
+					$("#case1").append("<td>" + response.cml[2][x]+ "</td>");
+				}
+				$("#case1table").append("</tr>");
 			});
 		})
 
