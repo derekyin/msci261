@@ -35,14 +35,8 @@
                 <h2>MVP portfolio</h2>
                 <b-table striped hover :items="mvpTable"></b-table>
 
-                <h2>Case 1</h2>
-                <b-table striped hover :items="case1Table"></b-table>
-
-                <h2>Case 2</h2>
-                <b-table striped hover :items="case2Table"></b-table>
-
-                <h2>Case 3</h2>
-                <b-table striped hover :items="case3Table"></b-table>
+                <h2>Cases</h2>
+                <b-table striped hover :items="caseTable"></b-table>
             </div>
         </div>
 
@@ -68,9 +62,7 @@
                   show2: false,
                   stocksTable: [],
                   mvpTable: [],
-                  case1Table: [],
-                  case2Table: [],
-                  case3Table: [],
+                  caseTable: [],
               },
               computed: {
               },
@@ -101,49 +93,34 @@
                     $.ajax(settings).done(function (response) {
                         window.app.workingOnStocks = false;
 
-                        console.log(response);
                         window.app.stocksTable = [];
                         for(row of response.stocks){
                             window.app.stocksTable.push({
-                                ticker: row.ticker,
-                                daily_return: row.mean_daily,
-                                annual_return: row.mean_annual,
-                                standard_deviation: row.sd
+                                ticker: row.ticker.toUpperCase(),
+                                daily_return: (Math.round(row.mean_daily * 100000) / 1000).toString() + "%",
+                                annual_return: (Math.round(row.mean_annual * 1000) / 10).toString() + "%",
+                                standard_deviation: (Math.round(row.sd * 1000) / 10).toString() + "%"
                             });
                         }
 
                         window.app.mvpTable = [];
                         window.app.mvpTable.push({
-                            proportion_stock_a: response.mvp.prop_a,
-                            proportion_stock_b: response.mvp.prop_b,
-                            annual_return: response.mvp["return"],
-                            standard_deviation: response.mvp.sd
+                            proportion_stock_a: (Math.round(response.mvp.prop_a * 1000) / 10).toString() + "%",
+                            proportion_stock_b: (Math.round(response.mvp.prop_b * 1000) / 10).toString() + "%",
+                            annual_return: (Math.round(response.mvp["return"] * 1000) / 10).toString() + "%",
+                            standard_deviation: (Math.round(response.mvp.sd * 1000) / 10).toString() + "%"
                         });
 
-                        window.app.case1Table = [];
-                        window.app.case1Table.push({
-                            proportion_risk_free: response.cml[2].prop_rf,
-                            proportion_market: response.cml[2].prop_market,
-                            maximum_Sharpe_Ratio: response.cml[2].sharpe,
-                            annual_return: response.cml[2].annual_return,
-                            standard_deviation: response.cml[2].sd
-                        });
-                        
-                        window.app.case2Table = [];
-                        window.app.case2Table.push({
-                            proportion_risk_free: response.cml[1].prop_rf,
-                            proportion_market: response.cml[1].prop_market,
-                            annual_return: response.cml[1].annual_return,
-                            standard_deviation: response.cml[1].sd
-                        });
-                        
-                        window.app.case3Table = [];
-                        window.app.case3Table.push({
-                            proportion_risk_free: response.cml[0].prop_rf,
-                            proportion_market: response.cml[0].prop_market,
-                            annual_return: response.cml[0].annual_return,
-                            standard_deviation: response.cml[0].sd
-                        });
+                        window.app.caseTable = [];
+                        for(row of response.cml){
+                            window.app.caseTable.push({
+                                proportion_risk_free: (Math.round(row.prop_rf * 100)).toString() + "%",
+                                proportion_market: (Math.round(row.prop_market * 100)).toString() + "%",
+                                sharpe_ratio: row.sharpe ? Math.round(row.sharpe * 10) / 10 : '',
+                                annual_return: (Math.round(row.annual_return * 1000) / 10).toString() + "%",
+                                standard_deviation: (Math.round(row.sd * 1000) / 10).toString() + "%"
+                            });
+                        }
                         window.app.show1 = true;
                     });
                 }
