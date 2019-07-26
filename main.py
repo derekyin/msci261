@@ -361,10 +361,12 @@ def main(ticker_a=None, ticker_b=None):
         },
         "cml": [
             {
-                "prop_rf": -0.5,
-                "prop_market": 1.5,
-                "annual_return": case3.avg_return,
-                "sd": case3.stddev
+                "prop_rf": 0,
+                "prop_market": 1,
+                "sharpe": sharpe.sharpe,
+                "market": sharpe.result.x.tolist(),
+                "annual_return": sharpe.avg_return,
+                "sd": sharpe.stddev
             },
             {
                 "prop_rf": 0.5,
@@ -373,12 +375,10 @@ def main(ticker_a=None, ticker_b=None):
                 "sd": case2.stddev
             },
             {
-                "prop_rf": 0,
-                "prop_market": 1,
-                "sharpe": sharpe.sharpe,
-                "market": sharpe.result.x.tolist(),
-                "annual_return": sharpe.avg_return,
-                "sd": sharpe.stddev
+                "prop_rf": -0.5,
+                "prop_market": 1.5,
+                "annual_return": case3.avg_return,
+                "sd": case3.stddev
             }
         ]
     }
