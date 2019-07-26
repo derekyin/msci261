@@ -11,21 +11,23 @@
 	</head>
 	<body>
         <div class="container" id="app">
-            <h2>Enter stock info</h2>
-            <div class="input-group mb-3">
-                <div class="input-group-prepend">
-                    <span class="input-group-text" id="basic-addon1">$</span>
+            <form v-on:submit="processStocks">
+                <h2>Enter stock info</h2>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="basic-addon1">$</span>
+                    </div>
+                    <input v-model="inputa" type="text" id="inputa" class="form-control" placeholder="Stock A Ticker" aria-describedby="basic-addon1">
                 </div>
-                <input v-model="inputa" type="text" id="inputa" class="form-control" placeholder="Stock A Ticker" aria-describedby="basic-addon1">
-            </div>
 
-            <div class="input-group mb-3">
-                <div class="input-group-prepend">
-                    <span class="input-group-text" id="basic-addon2">$</span>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="basic-addon2">$</span>
+                    </div>
+                    <input v-model="inputb" type="text" id="inputb" class="form-control" placeholder="Stock B Ticker" aria-describedby="basic-addon1">
                 </div>
-                <input v-model="inputb" type="text" id="inputb" class="form-control" placeholder="Stock B Ticker" aria-describedby="basic-addon1">
-            </div>
-            <b-button :disabled="workingOnStocks" v-on:click="processStocks" variant="primary" size="lg" type="button" id="submitbutton" class="mb-3">Submit</b-button>
+                <b-button :disabled="workingOnStocks" v-on:click="processStocks" variant="primary" size="lg" type="submit" id="submitbutton" class="mb-3">Submit</b-button>
+            </form>
 
             <div v-if="show1" id="output1">
                 <b-table striped hover :items="stocksTable"></b-table>
