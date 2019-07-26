@@ -1,5 +1,7 @@
 ## MSCI 261 project
 
+### Frontend Deployment Status
+
 [![Build Status](https://travis-ci.com/derekyin/msci261.svg?token=YzmFaH4zrTpGsKpLKNAW&branch=master)](https://travis-ci.com/derekyin/msci261)
 
 Frontend live at
