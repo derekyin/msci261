@@ -352,7 +352,7 @@ def main(ticker_a=None, ticker_b=None):
                 "sd": stock_B.get_stddev()
             }
         ],
-        "cov": np.cov(stock_A.get_returns(), stock_B.get_returns()),
+        "cov": np.cov([stock_A.get_returns(), stock_B.get_returns()]).tolist()[0][1],
         "mvp": {
             "prop_a": min_portfolio.proportions[0],
             "prop_b": min_portfolio.proportions[1],
