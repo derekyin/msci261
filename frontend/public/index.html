@@ -152,6 +152,7 @@
 
                     $.ajax(settings).done(function (response) {
                         window.app.workingOnStocks = false;
+                        window.app.error = '';
                         if(response.error){
                             window.app.error = response.error;
                             window.app.show1 = false;
