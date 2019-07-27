@@ -29,14 +29,44 @@
                 <b-button :disabled="workingOnStocks" v-on:click="processStocks" variant="primary" size="lg" type="submit" id="submitbutton" class="mb-3">Submit</b-button>
             </form>
 
-            <div v-if="show1" id="output1">
-                <b-table striped hover :items="stocksTable"></b-table>
-        
-                <h2>MVP portfolio</h2>
-                <b-table striped hover :items="mvpTable"></b-table>
+            <p v-if="this.error.length" class="text-danger"> {{this.error}} </p>
 
-                <h2>Cases</h2>
-                <b-table striped hover :items="caseTable"></b-table>
+            <div role="tablist">
+                <b-card v-if="show1" no-body class="mb-1">
+                    <b-card-header header-tag="header" class="p-1" role="tab">
+                        <b-button block href="#" v-b-toggle.accordion-1 variant="light">2 Stocks</b-button>
+                    </b-card-header>
+                    <b-collapse class="p-2" id="accordion-1" visible accordion="my-accordion" role="tabpanel">
+                        <b-card-body>
+                            <p class="lead"> Covariance: {{(this.cov * 100).toPrecision(2)}}%</p>
+                            <b-table striped hover :items="stocksTable"></b-table>
+
+                            <h2>MVP portfolio</h2>
+                            <label for="range-portfolio">Adjust portfolio proportion for the first stock</label>
+                            <b-form-input id="range-portfolio" v-model="prop_a" type="range" min="0" max="1" step="0.01"></b-form-input>
+                            <b-table striped hover :items="mvpTable"></b-table>
+
+                            <h2>Cases</h2>
+                            <p class="lead"> Maximum Sharpe Ratio: {{this.sharpe.toPrecision(2)}} </p>
+                            <p class="lead"> Proportion of first stock in market portfolio: {{(this.sharpe_a * 100).toPrecision(3)}}%</p>
+                            <p class="lead"> Proportion of second stock in market portfolio: {{(this.sharpe_b * 100).toPrecision(3)}}%</p>
+                            <label for="range-cml">Adjust risk free proportion</label>
+                            <b-form-input id="range-cml" v-model="prop_rf" type="range" min="-2" max="1" step="0.01"></b-form-input>
+                            <b-table striped hover :items="caseTable"></b-table>
+                        </b-card-body>
+                    </b-collapse>
+                </b-card>
+
+                <b-card v-if="show2">
+                    <b-card-header header-tag="header" class="p-1" role="tab">
+                        <b-button block href="#" v-b-toggle.accordion-1 variant="light">5-10 Random Stocks Portfolio</b-button>
+                    </b-card-header>
+                    <b-collapse id="accordion-2" accordion="my-accordion" role="tabpanel">
+                        <b-card-body>
+
+                        </b-card-body>
+                    </b-collapse>
+                </b-card>
             </div>
         </div>
 
@@ -44,9 +74,7 @@
         <!-- jQuery first, then Popper.js, then Bootstrap JS -->
         <script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
         <script src="https://unpkg.com/vue@2.6.10/dist/vue.min.js"></script>
-        <script src="https://unpkg.com/vue-router/dist/vue-router.min.js"></script>
         <script src="https://unpkg.com/babel-polyfill@latest/dist/polyfill.min.js"></script>
         <script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.js"></script>
 
@@ -63,12 +91,44 @@
                   stocksTable: [],
                   mvpTable: [],
                   caseTable: [],
-              },
-              computed: {
-              },
-              mounted: function() {
+                  prop_a: 0,
+                  prop_rf: 0,
+                  stock_a: {},
+                  stock_b: {},
+                  cov: 0,
+                  sd_m: 0,
+                  sharpe: 0,
+                  sharpe_a: 0,
+                  sharpe_b: 0,
+                  sharpe_return: 0,
+                  sharpe_sd: 0,
+                  error: "",
               },
               watch:{
+                  prop_a: function(){
+                    if(this.mvpTable.length != 2){
+                        this.mvpTable.push({});
+                    }
+                    this.mvpTable[1].proportion_stock_a = (this.prop_a * 100).toPrecision(3) + "%";
+                    this.mvpTable[1].proportion_stock_b = ((1 - this.prop_a) * 100).toPrecision(3) + "%";
+                    this.mvpTable[1].annual_return = ((this.prop_a * this.stock_a.mean_annual +
+                        (1 - this.prop_a) * this.stock_b.mean_annual) * 100).toPrecision(3) + "%";
+                    this.mvpTable[1].standard_deviation = (Math.pow(
+                        Math.pow(this.prop_a * this.stock_a.sd, 2) +
+                        Math.pow((1 - this.prop_a) * this.stock_b.sd, 2) +
+                        2 * this.prop_a * (1 - this.prop_a) * this.cov,
+                        1/2) * 100).toPrecision(3) + "%";
+                  },
+                  prop_rf: function(){
+                    if(this.caseTable.length != 4){
+                        this.caseTable.push({});
+                    }
+                    this.caseTable[3].proportion_risk_free = (this.prop_rf * 100).toPrecision(3) + "%";
+                    this.caseTable[3].proportion_market = ((1 - this.prop_rf) * 100).toPrecision(3) + "%";
+                    this.caseTable[3].annual_return = (this.prop_rf * 2 +
+                        (1 - this.prop_rf) * this.sharpe_return * 100).toPrecision(3) + "%";
+                    this.caseTable[3].standard_deviation = ((1 - this.prop_rf) * this.sharpe_sd * 100).toPrecision(3) + "%";
+                  }
               },
               methods:{
                 processStocks: function(){
@@ -92,33 +152,47 @@
 
                     $.ajax(settings).done(function (response) {
                         window.app.workingOnStocks = false;
+                        if(response.error){
+                            window.app.error = response.error;
+                            window.app.show1 = false;
+                            return;
+                        }
 
+                        window.app.stock_a = response.stocks[0];
+                        window.app.stock_b = response.stocks[1];
+                        window.app.cov = response.cov;
                         window.app.stocksTable = [];
                         for(row of response.stocks){
                             window.app.stocksTable.push({
                                 ticker: row.ticker.toUpperCase(),
-                                daily_return: (Math.round(row.mean_daily * 100000) / 1000).toString() + "%",
-                                annual_return: (Math.round(row.mean_annual * 1000) / 10).toString() + "%",
-                                standard_deviation: (Math.round(row.sd * 1000) / 10).toString() + "%"
+                                daily_return: (row.mean_daily * 100).toPrecision(3) + "%",
+                                annual_return: (row.mean_annual * 100).toPrecision(3) + "%",
+                                standard_deviation: (row.sd * 100).toPrecision(3) + "%"
                             });
                         }
 
                         window.app.mvpTable = [];
                         window.app.mvpTable.push({
-                            proportion_stock_a: (Math.round(response.mvp.prop_a * 1000) / 10).toString() + "%",
-                            proportion_stock_b: (Math.round(response.mvp.prop_b * 1000) / 10).toString() + "%",
-                            annual_return: (Math.round(response.mvp["return"] * 1000) / 10).toString() + "%",
-                            standard_deviation: (Math.round(response.mvp.sd * 1000) / 10).toString() + "%"
+                            proportion_stock_a: (response.mvp.prop_a * 100).toPrecision(3) + "%",
+                            proportion_stock_b: (response.mvp.prop_b * 100).toPrecision(3) + "%",
+                            annual_return: (response.mvp["return"] * 100).toPrecision(3) + "%",
+                            standard_deviation: (response.mvp.sd * 100).toPrecision(3) + "%"
                         });
 
                         window.app.caseTable = [];
                         for(row of response.cml){
+                            if(row.sharpe){
+                                window.app.sharpe = row.sharpe;
+                                window.app.sharpe_a = row.market[0];
+                                window.app.sharpe_b = row.market[1];
+                                window.app.sharpe_return = row.annual_return;
+                                window.app.sharpe_sd = row.sd;
+                            }
                             window.app.caseTable.push({
-                                proportion_risk_free: (Math.round(row.prop_rf * 100)).toString() + "%",
-                                proportion_market: (Math.round(row.prop_market * 100)).toString() + "%",
-                                sharpe_ratio: row.sharpe ? Math.round(row.sharpe * 10) / 10 : '',
-                                annual_return: (Math.round(row.annual_return * 1000) / 10).toString() + "%",
-                                standard_deviation: (Math.round(row.sd * 1000) / 10).toString() + "%"
+                                proportion_risk_free: (row.prop_rf * 100).toPrecision(3) + "%",
+                                proportion_market: (row.prop_market * 100).toPrecision(3) + "%",
+                                annual_return: (row.annual_return * 100).toPrecision(3) + "%",
+                                standard_deviation: (row.sd * 100).toPrecision(3) + "%"
                             });
                         }
                         window.app.show1 = true;
