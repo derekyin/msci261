@@ -240,7 +240,11 @@ def find_random_portfolio(_):
                     found = True
                     break
     return jsonify({
-        "tickers": [s.ticker for s in random_portfolio.stocks],
+        "stocks": [{
+            "ticker": s.ticker,
+            "annual_return": s.get_annual_return(),
+            "sd": s.get_stddev()
+            } for s in random_portfolio.stocks],
         "proportions": random_portfolio.proportions.tolist(),
         "annual_return": random_portfolio.avg_return,
         "stddev": random_portfolio.stddev
