@@ -8,6 +8,10 @@
     ],
     "rewrites": [
       {
+        "source": "/random",
+        "function": "random-portfolio"
+      },
+      {
         "source": "/stocks",
         "function": "stocks"
       }

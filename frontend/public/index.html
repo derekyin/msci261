@@ -26,7 +26,10 @@
                     </div>
                     <input v-model="inputb" type="text" id="inputb" class="form-control" placeholder="Stock B Ticker" aria-describedby="basic-addon1">
                 </div>
+                <div>
                 <b-button :disabled="workingOnStocks" v-on:click="processStocks" variant="primary" size="lg" type="submit" id="submitbutton" class="mb-3">Submit</b-button>
+                <b-button :disabled="workingOnRandomPortfolio" v-on:click="findRandom" variant="secondary" size="lg" class="mb-3">{{this.randomButtonText}}</b-button>
+                </div>
             </form>
 
             <p v-if="this.error.length" class="text-danger"> {{this.error}} </p>
@@ -57,13 +60,17 @@
                     </b-collapse>
                 </b-card>
 
-                <b-card v-if="show2">
+                <b-card v-if="show2" no-body class="mb-1">
                     <b-card-header header-tag="header" class="p-1" role="tab">
-                        <b-button block href="#" v-b-toggle.accordion-1 variant="light">5-10 Random Stocks Portfolio</b-button>
+                        <b-button block href="#" v-b-toggle.accordion-2 variant="light">5-10 Random Stocks Portfolio</b-button>
                     </b-card-header>
-                    <b-collapse id="accordion-2" accordion="my-accordion" role="tabpanel">
+                    <b-collapse id="accordion-2" visible accordion="my-accordion" role="tabpanel">
                         <b-card-body>
+                            <p class="lead"> {{this.randomStocksTable.length}} stocks into equal proportions of {{this.randomProp}} </p>
+                            <p class="lead"> Annual Return: {{(this.randomReturn * 100).toPrecision(3)}}% </p>
+                            <p class="lead"> Standard Deviation: {{(this.randomSd * 100).toPrecision(3)}}% </p>
 
+                            <b-table striped hover :items="randomStocksTable"></b-table>
                         </b-card-body>
                     </b-collapse>
                 </b-card>
@@ -103,6 +110,11 @@
                   sharpe_return: 0,
                   sharpe_sd: 0,
                   error: "",
+                  randomSd: 0,
+                  randomReturn: 0,
+                  randomStocksTable: [],
+                  randomProp: "",
+                  randomButtonText: "Find Random Portfolio",
               },
               watch:{
                   prop_a: function(){
@@ -197,6 +209,44 @@
                             });
                         }
                         window.app.show1 = true;
+                    });
+                },
+                findRandom: function(){
+                    this.randomButtonText = "Please wait...";
+                    this.workingOnRandomPortfolio = true;
+                    var settings = {
+                        "async": true,
+                        "crossDomain": true,
+                        "url": "/random",
+                        "method": "POST",
+                        "headers": {
+                            "Content-Type": "application/json",
+                            },
+                        "processData": false,
+                        "data": {},
+                        "timeout": 7000
+                    }
+
+                    $.ajax(settings).done(function (response) {
+                        window.app.randomButtonText = "Find Random Portfolio";
+                        window.app.workingOnRandomPortfolio = false;
+                        
+                        window.app.randomReturn = response.annual_return;
+                        window.app.randomSd = response.stddev;
+                        window.app.randomStocksTable = [];
+                        for(row of response.stocks){
+                            window.app.randomStocksTable.push({
+                                ticker: row.ticker,
+                                annual_return: (row.annual_return * 100).toPrecision(3) + "%",
+                                standard_deviation: (row.sd * 100).toPrecision(3) + "%",
+                            });
+                        }
+                        window.app.randomProp = "1/" + String(window.app.randomStocksTable.length);
+                        window.app.show2 = true;
+                    })
+                    .fail(function(){
+                        console.log("retrying");
+                        window.app.findRandom();
                     });
                 }
               }
