@@ -31,7 +31,6 @@ def stddev(x, cov_matrix):
 class Stock:
     def __init__(self, ticker):
         self.ticker = ticker
-        self.date = []
         self.closing_price = []
         _data = None
 
@@ -42,9 +41,8 @@ class Stock:
             raise ValueError("No data on stock {}".format(ticker))
 
         for i in range(0, len(_data["timestamp"])):
-            if _data["timestamp"][i] >= time.mktime(date(2018, 6, 1).timetuple()) * 1000 and _data["timestamp"][i] <= time.mktime(date(2019, 6, 1).timetuple()) * 1000:
-                self.date.append(
-                    datetime.fromtimestamp(int(_data["timestamp"][i])/1000))
+            date = datetime.fromtimestamp(int(_data["timestamp"][i])/1000)
+            if date >= datetime(2018, 6, 1) and date < datetime(2019, 6, 1):
                 self.closing_price.append(_data["close"][i])
 
         self.returns = []

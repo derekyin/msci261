@@ -7,14 +7,7 @@
 Frontend live at
 https://msci261.web.app
 
-API at
-https://us-central1-msci261.cloudfunctions.net/stocks
-
-ex API `POST` request payload with:
-
-```
-{
-    "a": "AAPL",
-    "b": "MSFT
-}
-```
+| API | endpoint | request type | payload |
+|---|---|---|---|
+| 2 Stock | https://us-central1-msci261.cloudfunctions.net/stocks | `POST` |`{"a": "AAPL","b": "MSFT}`|
+| 5 Random Stock| https://us-central1-msci261.cloudfunctions.net/random-portfolio | `POST` |  |
