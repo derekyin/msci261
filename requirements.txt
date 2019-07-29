@@ -1,5 +1,5 @@
-yahoo_finance_api2
-numpy
-scipy
-flask
-gunicorn
+yahoo_finance_api2==0.0.8
+numpy==1.16.4
+scipy==1.3.0
+flask==1.0.2
+gunicorn==19.9.0

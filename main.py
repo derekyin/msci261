@@ -165,6 +165,10 @@ class mvp_optimizer:
 
 
 def find_random_portfolio(_):
+    logging.basicConfig()
+    logger = logging.getLogger(__name__)
+    logger.setLevel("INFO")
+
     all_tickers = [
         "AN",
         "BFRA",
@@ -240,16 +244,24 @@ def find_random_portfolio(_):
                 if random_portfolio.stddev < 0.05 and random_portfolio.avg_return > 0.1:
                     found = True
                     break
-    return jsonify({
-        "stocks": [{
-            "ticker": s.ticker,
-            "annual_return": s.get_annual_return(),
-            "sd": s.get_stddev()
-            } for s in random_portfolio.stocks],
-        "proportions": random_portfolio.proportions.tolist(),
-        "annual_return": random_portfolio.avg_return,
-        "stddev": random_portfolio.stddev
-    })
+    logger.info("")
+    logger.info("--Bonus--")
+    for s in random_portfolio.stocks:
+        logger.info("ticker: {}, annual return: {}%, sd: {}%".format(s.ticker, s.get_annual_return() * 100, s.get_stddev() * 100))
+    logger.info("proportion: 1/{}".format(len(random_portfolio.stocks)))
+    logger.info("annual return: {}%".format(random_portfolio.avg_return * 100))
+    logger.info("stdev: {}".format(random_portfolio.stddev * 100))
+
+    # return jsonify({
+    #     "stocks": [{
+    #         "ticker": s.ticker,
+    #         "annual_return": s.get_annual_return(),
+    #         "sd": s.get_stddev()
+    #         } for s in random_portfolio.stocks],
+    #     "proportions": random_portfolio.proportions.tolist(),
+    #     "annual_return": random_portfolio.avg_return,
+    #     "stddev": random_portfolio.stddev
+    # })
 
 
 def main(ticker_a=None, ticker_b=None):
@@ -279,6 +291,7 @@ def main(ticker_a=None, ticker_b=None):
             "error": "{} and {} cannot be compared. Different trading dates.".format(ticker_a, ticker_b)
         }
 
+    logger.info("--Part 1--")
     logger.info("----{}----".format(stock_A.ticker))
     logger.info("mean return of {}: {}".format(
         stock_A.ticker, stock_A.get_annual_return()))
@@ -306,6 +319,7 @@ def main(ticker_a=None, ticker_b=None):
     sharpe = sharpe_optimizer([stock_A, stock_B], 0.02)
 
     logger.info("")
+    logger.info("--Part 2--")
     logger.info("Case 1:")
     logger.info("Proportion in risk free: 0%")
     logger.info("Proportion in market portfolio: 100%")
@@ -391,3 +405,4 @@ def main(ticker_a=None, ticker_b=None):
 
 if __name__ == '__main__':
     main()
+    find_random_portfolio(None)
