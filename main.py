@@ -1,5 +1,7 @@
 from copy import copy
 from datetime import datetime
+from datetime import date
+import time
 from flask import request, jsonify
 from random import random
 from scipy import optimize
@@ -35,14 +37,15 @@ class Stock:
 
         _share = share.Share(self.ticker)
         _data = _share.get_historical(
-            share.PERIOD_TYPE_YEAR, 1, share.FREQUENCY_TYPE_DAY, 1)
+            share.PERIOD_TYPE_YEAR, 2, share.FREQUENCY_TYPE_DAY, 1)
         if not _data:
             raise ValueError("No data on stock {}".format(ticker))
 
         for i in range(0, len(_data["timestamp"])):
-            self.date.append(
-                datetime.fromtimestamp(int(_data["timestamp"][i])/1000))
-            self.closing_price.append(_data["close"][i])
+            if _data["timestamp"][i] >= time.mktime(date(2018, 6, 1).timetuple()) * 1000 and _data["timestamp"][i] <= time.mktime(date(2019, 6, 1).timetuple()) * 1000:
+                self.date.append(
+                    datetime.fromtimestamp(int(_data["timestamp"][i])/1000))
+                self.closing_price.append(_data["close"][i])
 
         self.returns = []
         for i in range(1, len(self.closing_price)):
