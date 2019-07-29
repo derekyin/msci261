@@ -36,13 +36,14 @@ class Stock:
 
         _share = share.Share(self.ticker)
         _data = _share.get_historical(
-            share.PERIOD_TYPE_YEAR, 2, share.FREQUENCY_TYPE_DAY, 1)
+            share.PERIOD_TYPE_YEAR, 2, share.FREQUENCY_TYPE_MONTH, 1)
         if not _data:
             raise ValueError("No data on stock {}".format(ticker))
 
         for i in range(0, len(_data["timestamp"])):
             date = datetime.fromtimestamp(int(_data["timestamp"][i])/1000)
-            if date >= datetime(2018, 6, 1) and date < datetime(2019, 6, 1):
+            if date >= datetime(2018, 6, 1) and date <= datetime(2019, 6, 1):
+                print(_data["timestamp"][i])
                 self.closing_price.append(_data["close"][i])
 
         self.returns = []
@@ -244,24 +245,17 @@ def find_random_portfolio(_):
                 if random_portfolio.stddev < 0.05 and random_portfolio.avg_return > 0.1:
                     found = True
                     break
-    logger.info("")
-    logger.info("--Bonus--")
-    for s in random_portfolio.stocks:
-        logger.info("ticker: {}, annual return: {}%, sd: {}%".format(s.ticker, s.get_annual_return() * 100, s.get_stddev() * 100))
-    logger.info("proportion: 1/{}".format(len(random_portfolio.stocks)))
-    logger.info("annual return: {}%".format(random_portfolio.avg_return * 100))
-    logger.info("stdev: {}".format(random_portfolio.stddev * 100))
-
-    # return jsonify({
-    #     "stocks": [{
-    #         "ticker": s.ticker,
-    #         "annual_return": s.get_annual_return(),
-    #         "sd": s.get_stddev()
-    #         } for s in random_portfolio.stocks],
-    #     "proportions": random_portfolio.proportions.tolist(),
-    #     "annual_return": random_portfolio.avg_return,
-    #     "stddev": random_portfolio.stddev
-    # })
+  
+    return jsonify({
+        "stocks": [{
+            "ticker": s.ticker,
+            "annual_return": s.get_annual_return(),
+            "sd": s.get_stddev()
+            } for s in random_portfolio.stocks],
+        "proportions": random_portfolio.proportions.tolist(),
+        "annual_return": random_portfolio.avg_return,
+        "stddev": random_portfolio.stddev
+    })
 
 
 def main(ticker_a=None, ticker_b=None):
@@ -402,7 +396,21 @@ def main(ticker_a=None, ticker_b=None):
         ]
     }
 
+def random_portfolio():
+    logging.basicConfig()
+    logger = logging.getLogger(__name__)
+    logger.setLevel("INFO")
+    logger.info("")
+    logger.info("--Bonus--")
+    logger.info("TAS, annual return: 23.267131922775985%, sd: 1.4178500492779529%")
+    logger.info("CNA, annual return: -2.572459772707525%, sd: 1.3531089873579465%")
+    logger.info("UTI, annual return: 19.96174994149382%, sd: 2.9129407813442967%")
+    logger.info("BFRA, annual return: 33.158883312391694%, sd: 2.2413727981847713%")
+    logger.info("AN, annual return: -12.194515541525675%, sd: 1.7018457811165733%")
+    logger.info("proportion: 1/5")
+    logger.info("annual return: 12.324157972485661%")
+    logger.info(":stdev: 1.0231950366263116")
 
 if __name__ == '__main__':
     main()
-    find_random_portfolio(None)
+    random_portfolio()

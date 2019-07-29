@@ -18,11 +18,15 @@ install dependecies in `requirements.txt` via pip
 
 to run program, run `python3 main.py`
 
-### Note
+# Bonus portfolio
 
-For the bonus, the 5 to 10 stock portfolio is computed each time,
-therefor it might take a little while (1 to 5 sec) before results appear on screen
+the stocks we used for the bonus portfolio:
 
+- `TAS`
+- `CNA`
+- `UTI`
+- `BFRA`
+- `AN`
 ### Example output
 
 ![example output](example.png)
