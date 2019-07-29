@@ -29,20 +29,19 @@ def stddev(x, cov_matrix):
 class Stock:
     def __init__(self, ticker):
         self.ticker = ticker
-        self.date = []
         self.closing_price = []
         _data = None
 
         _share = share.Share(self.ticker)
         _data = _share.get_historical(
-            share.PERIOD_TYPE_YEAR, 1, share.FREQUENCY_TYPE_DAY, 1)
+            share.PERIOD_TYPE_YEAR, 2, share.FREQUENCY_TYPE_DAY, 1)
         if not _data:
             raise ValueError("No data on stock {}".format(ticker))
 
         for i in range(0, len(_data["timestamp"])):
-            self.date.append(
-                datetime.fromtimestamp(int(_data["timestamp"][i])/1000))
-            self.closing_price.append(_data["close"][i])
+            date = datetime.fromtimestamp(int(_data["timestamp"][i])/1000)
+            if date >= datetime(2018, 6, 1) and date < datetime(2019, 6, 1):
+                self.closing_price.append(_data["close"][i])
 
         self.returns = []
         for i in range(1, len(self.closing_price)):
