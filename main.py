@@ -54,7 +54,7 @@ class Stock:
                     self.closing_price[i]/self.closing_price[i-1] - 1)
 
         self.average = np.mean(self.get_returns())
-        self.stddev = np.std(self.get_returns(), ddof=1)
+        self.stddev = np.std(self.get_returns(), ddof=1) * np.sqrt(12)
         self.var = np.var(self.get_returns())
 
     def get_returns(self):
@@ -112,7 +112,7 @@ class Portfolio:
         self.proportions = proportions
         self.stocks = stocks
         self.cov_matrix = np.cov([stock.get_returns() for stock in stocks], ddof=1)
-        self.stddev = stddev(self.proportions, self.cov_matrix)
+        self.stddev = stddev(self.proportions, self.cov_matrix) * np.sqrt(12)
         self.var = self.stddev**2
         self.avg_return = proportions.dot(
             [stock.get_annual_return() for stock in stocks])
@@ -147,7 +147,7 @@ class sharpe_optimizer:
         self.sharpe = - \
             self.__sharpe_ratio(self.result.x, cov_matrix,
                                 mean_vector, risk_free_rate)
-        self.stddev = stddev(self.result.x, cov_matrix)
+        self.stddev = stddev(self.result.x, cov_matrix) * np.sqrt(12)
         self.avg_return = self.result.x.dot(mean_vector)
 
 
@@ -413,4 +413,5 @@ def random_portfolio():
 
 if __name__ == '__main__':
     main()
-    random_portfolio()
+    # random_portfolio()
+    find_random_portfolio(None)
