@@ -42,8 +42,7 @@ class Stock:
 
         for i in range(0, len(_data["timestamp"])):
             date = datetime.fromtimestamp(int(_data["timestamp"][i])/1000)
-            if date >= datetime(2018, 6, 1) and date <= datetime(2019, 6, 1):
-                print(_data["timestamp"][i])
+            if date >= datetime(2018, 6, 1) and date <= datetime(2019, 6, 2):
                 self.closing_price.append(_data["close"][i])
 
         self.returns = []
@@ -55,7 +54,7 @@ class Stock:
                     self.closing_price[i]/self.closing_price[i-1] - 1)
 
         self.average = np.mean(self.get_returns())
-        self.stddev = np.std(self.get_returns())
+        self.stddev = np.std(self.get_returns(), ddof=1)
         self.var = np.var(self.get_returns())
 
     def get_returns(self):
@@ -112,7 +111,7 @@ class Portfolio:
     def __init__(self, proportions: np.ndarray, stocks: List[Stock]):
         self.proportions = proportions
         self.stocks = stocks
-        self.cov_matrix = np.cov([stock.get_returns() for stock in stocks])
+        self.cov_matrix = np.cov([stock.get_returns() for stock in stocks], ddof=1)
         self.stddev = stddev(self.proportions, self.cov_matrix)
         self.var = self.stddev**2
         self.avg_return = proportions.dot(
@@ -136,7 +135,7 @@ class sharpe_optimizer:
         profits = [stock.get_returns() for stock in stocks]
         x = np.ones(len(profits))
         mean_vector = [stock.get_annual_return() for stock in stocks]
-        cov_matrix = np.cov(profits)
+        cov_matrix = np.cov(profits, ddof=1)
         cons = ({'type': 'eq',
                  'fun': lambda x: np.sum(x) - 1})
         if not allow_short:
@@ -157,7 +156,7 @@ class mvp_optimizer:
         profits = [stock.get_returns() for stock in stocks]
         x = np.ones(len(profits))
         mean_vector = [stock.get_annual_return() for stock in stocks]
-        cov_matrix = np.cov(profits)
+        cov_matrix = np.cov(profits, ddof=1)
         cons = ({'type': 'eq',
                  'fun': lambda x: np.sum(x) - 1})
         bounds = [(0, 1) for i in range(len(x))]
@@ -245,7 +244,7 @@ def find_random_portfolio(_):
                 if random_portfolio.stddev < 0.05 and random_portfolio.avg_return > 0.1:
                     found = True
                     break
-  
+    
     return jsonify({
         "stocks": [{
             "ticker": s.ticker,
@@ -327,28 +326,29 @@ def main(ticker_a=None, ticker_b=None):
     logger.info("Market portfolio standard deviation: {}%".format(
         sharpe.stddev * 100))
 
-    rf = Stock.risk_free(0.02, stock_A)
-    market_portfolio = Stock.combine(sharpe.result.x, [stock_A, stock_B])
-    case2 = Portfolio(np.array([0.5, 0.5]), [rf, market_portfolio])
-    case3 = Portfolio(np.array([-0.5, 1.5]), [rf, market_portfolio])
+    case2return = 0.5 * (0.02 + sharpe.avg_return)
+    case2sd = 0.5 * sharpe.stddev
+
+    case3return = -0.5 * 0.02 + 1.5 * sharpe.avg_return
+    case3sd = 1.5 * sharpe.stddev
 
     logger.info("")
     logger.info("Case 2:")
     logger.info("Proportion in risk free: 50%")
     logger.info("Proportion in market portfolio: 50%")
     logger.info("Market portfolio expected return: {}%".format(
-        case2.avg_return * 100))
+        case2return * 100))
     logger.info("Market portfolio standard deviation: {}%".format(
-        case2.stddev * 100))
+        case2sd * 100))
 
     logger.info("")
     logger.info("Case 3:")
     logger.info("Proportion in risk free: -50%")
     logger.info("Proportion in market portfolio: 150%")
     logger.info("Market portfolio expected return: {}%".format(
-        case3.avg_return * 100))
+        case3return * 100))
     logger.info("Market portfolio standard deviation: {}%".format(
-        case3.stddev * 100))
+        case3sd * 100))
 
     return {
         "stocks": [
@@ -365,7 +365,7 @@ def main(ticker_a=None, ticker_b=None):
                 "sd": stock_B.get_stddev()
             }
         ],
-        "cov": np.cov([stock_A.get_returns(), stock_B.get_returns()]).tolist()[0][1],
+        "cov": np.cov([stock_A.get_returns(), stock_B.get_returns()], ddof=1).tolist()[0][1],
         "mvp": {
             "prop_a": min_portfolio.proportions[0],
             "prop_b": min_portfolio.proportions[1],
@@ -384,14 +384,14 @@ def main(ticker_a=None, ticker_b=None):
             {
                 "prop_rf": 0.5,
                 "prop_market": 0.5,
-                "annual_return": case2.avg_return,
-                "sd": case2.stddev
+                "annual_return": case2return,
+                "sd": case2sd
             },
             {
                 "prop_rf": -0.5,
                 "prop_market": 1.5,
-                "annual_return": case3.avg_return,
-                "sd": case3.stddev
+                "annual_return": case3return,
+                "sd": case3sd
             }
         ]
     }
@@ -402,14 +402,14 @@ def random_portfolio():
     logger.setLevel("INFO")
     logger.info("")
     logger.info("--Bonus--")
-    logger.info("TAS, annual return: 23.267131922775985%, sd: 1.4178500492779529%")
-    logger.info("CNA, annual return: -2.572459772707525%, sd: 1.3531089873579465%")
-    logger.info("UTI, annual return: 19.96174994149382%, sd: 2.9129407813442967%")
-    logger.info("BFRA, annual return: 33.158883312391694%, sd: 2.2413727981847713%")
-    logger.info("AN, annual return: -12.194515541525675%, sd: 1.7018457811165733%")
+    logger.info("HOLD, annual return: 2.689834428626825%, sd: 0.11279399095566703%")
+    logger.info("FLDM, annual return: 121.01896092369996%, sd: 11.959646177432615%")
+    logger.info("FLGR, annual return: -1.8348439169792674%, sd: 5.794253932178553%")
+    logger.info("NIB, annual return: -0.544415529142761%, sd: 8.762081578608642%")
+    logger.info("CTAS, annual return: 33.6831266394205%, sd: 7.526262295900452%")
     logger.info("proportion: 1/5")
-    logger.info("annual return: 12.324157972485661%")
-    logger.info(":stdev: 1.0231950366263116")
+    logger.info("annual return: 31.002532509125054%")
+    logger.info("stdev: 3.822740999485516%")
 
 if __name__ == '__main__':
     main()
