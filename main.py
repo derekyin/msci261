@@ -55,7 +55,7 @@ class Stock:
 
         self.average = np.mean(self.get_returns())
         self.stddev = np.std(self.get_returns(), ddof=1) * np.sqrt(12)
-        self.var = np.var(self.get_returns())
+        self.var = self.stddev ** 2
 
     def get_returns(self):
         return self.returns
@@ -71,40 +71,6 @@ class Stock:
 
     def get_stddev(self):
         return self.stddev
-
-    @classmethod
-    def combine(cls, proportions: np.ndarray, stocks: List):
-        combined = copy(stocks[0])
-        combined.ticker = "portfolio " + \
-            " ".join([stock.ticker for stock in stocks])
-        combined.closing_price = []
-        combined.returns = []
-
-        for i in range(len(stocks[0].closing_price)):
-            combined.closing_price.append(proportions.dot(
-                [stock.closing_price[i] for stock in stocks]))
-
-        for i in range(len(stocks[0].returns)):
-            combined.returns.append(proportions.dot(
-                [stock.returns[i] for stock in stocks]))
-
-        combined.average = np.mean(combined.get_returns())
-
-        tmp = Portfolio(proportions, stocks)
-        combined.stddev = tmp.stddev
-        combined.var = tmp.var
-        return combined
-
-    @classmethod
-    def risk_free(cls, rate, other):
-        rf = copy(other)
-        rf.ticker = "risk free " + str(rate)
-        rf.closing_price = []
-        rf.average = (1 + rate)**(1/len(other.returns)) - 1
-        rf.returns = [rf.average for i in other.returns]
-        rf.stddev = 0
-        rf.var = 0
-        return rf
 
 
 class Portfolio:
@@ -135,7 +101,7 @@ class sharpe_optimizer:
         profits = [stock.get_returns() for stock in stocks]
         x = np.ones(len(profits))
         mean_vector = [stock.get_annual_return() for stock in stocks]
-        cov_matrix = np.cov(profits, ddof=1)
+        cov_matrix = np.cov(profits, ddof=1) * 12
         cons = ({'type': 'eq',
                  'fun': lambda x: np.sum(x) - 1})
         if not allow_short:
@@ -147,7 +113,7 @@ class sharpe_optimizer:
         self.sharpe = - \
             self.__sharpe_ratio(self.result.x, cov_matrix,
                                 mean_vector, risk_free_rate)
-        self.stddev = stddev(self.result.x, cov_matrix) * np.sqrt(12)
+        self.stddev = stddev(self.result.x, cov_matrix)
         self.avg_return = self.result.x.dot(mean_vector)
 
 
@@ -156,7 +122,7 @@ class mvp_optimizer:
         profits = [stock.get_returns() for stock in stocks]
         x = np.ones(len(profits))
         mean_vector = [stock.get_annual_return() for stock in stocks]
-        cov_matrix = np.cov(profits, ddof=1)
+        cov_matrix = np.cov(profits, ddof=1) * 12
         cons = ({'type': 'eq',
                  'fun': lambda x: np.sum(x) - 1})
         bounds = [(0, 1) for i in range(len(x))]
@@ -170,49 +136,37 @@ def find_random_portfolio(_):
     logger.setLevel("INFO")
 
     all_tickers = [
-        "AN",
-        "BFRA",
-        "BFS",
-        "CACC",
-        "CNA",
-        "CRMD",
-        "CTAS",
-        "DGL",
-        "ENLV",
-        "EWRE",
-        "FBIO",
-        "FEIM",
-        "FLDM",
-        "FLGR",
-        "FLR",
-        "FMAT",
-        "GSHD",
-        "HASI",
-        "HFBL",
-        "HJV",
-        "HK",
-        "HOLD",
-        "IFGL",
-        "INFI",
-        "JASN",
-        "JHX",
-        "JJE",
-        "LQDI",
-        "NIB",
-        "RBUS",
-        "RVRS",
-        "RYJ",
-        "SHOS",
-        "UEIC",
-        "UTI",
-        "UUU",
-        "VCYT",
-        "VFLQ",
-        "VNQ",
-        "VO",
-        "WLKP",
-        "WPM",
-        "XTH",
+        "BIV",
+        "BPOPN",
+        "BSCP",
+        "BSCQ",
+        "BSCR",
+        "CBND",
+        "CCOR",
+        "DIAL",
+        "EMTL",
+        "FCOR",
+        "FLCO",
+        "IBDQ",
+        "IBDR",
+        "IBDS",
+        "IGEB",
+        "IGIB",
+        "IHIT",
+        "JMM",
+        "MLQD",
+        "MMD",
+        "NEWTZ",
+        "NID",
+        "NUM",
+        "QLTA",
+        "SUSC",
+        "USIG",
+        "VCIT",
+        "VTC",
+        "WBII",
+        "WFIG",
+        "ZM",
     ]
 
     random_stocks = []
@@ -222,7 +176,6 @@ def find_random_portfolio(_):
     while not found:
         random_tickers = []
         random_stocks = []
-        n_period = None
         while len(random_stocks) < 10:
             try:
                 _stock = Stock(
@@ -231,9 +184,7 @@ def find_random_portfolio(_):
                 continue
             if _stock.ticker in random_tickers:
                 continue
-            elif not n_period:
-                n_period = len(_stock.returns)
-            elif n_period != len(_stock.returns):
+            elif 12 != len(_stock.returns):
                 continue
             random_stocks.append(_stock)
             random_tickers.append(_stock.ticker)
@@ -365,7 +316,7 @@ def main(ticker_a=None, ticker_b=None):
                 "sd": stock_B.get_stddev()
             }
         ],
-        "cov": np.cov([stock_A.get_returns(), stock_B.get_returns()], ddof=1).tolist()[0][1],
+        "cov": np.cov([stock_A.get_returns(), stock_B.get_returns()], ddof=1).tolist()[0][1] * 12,
         "mvp": {
             "prop_a": min_portfolio.proportions[0],
             "prop_b": min_portfolio.proportions[1],
@@ -402,16 +353,15 @@ def random_portfolio():
     logger.setLevel("INFO")
     logger.info("")
     logger.info("--Bonus--")
-    logger.info("HOLD, annual return: 2.689834428626825%, sd: 0.11279399095566703%")
-    logger.info("FLDM, annual return: 121.01896092369996%, sd: 11.959646177432615%")
-    logger.info("FLGR, annual return: -1.8348439169792674%, sd: 5.794253932178553%")
-    logger.info("NIB, annual return: -0.544415529142761%, sd: 8.762081578608642%")
-    logger.info("CTAS, annual return: 33.6831266394205%, sd: 7.526262295900452%")
+    logger.info("IHIT, annual return: 11.966266334923281%, sd: 2.9273188754920936%")
+    logger.info("NUM, annual return: 11.868758573182525%, sd: 4.752634006269607%")
+    logger.info("BSCQ, annual return: 11.520373405700312%, sd: 4.3912478349160295%")
+    logger.info("BPOPN, annual return: 16.35224337208443%, sd: 4.239301213771742%")
+    logger.info("BIV, annual return: 10.103605710831243%, sd: 3.810936627776694%")
     logger.info("proportion: 1/5")
-    logger.info("annual return: 31.002532509125054%")
-    logger.info("stdev: 3.822740999485516%")
+    logger.info("annual return: 12.362249479344358%")
+    logger.info("stdev: 3.2300395178168384%")
 
 if __name__ == '__main__':
     main()
-    # random_portfolio()
-    find_random_portfolio(None)
+    random_portfolio()
