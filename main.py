@@ -215,7 +215,7 @@ def main(ticker_a=None, ticker_b=None, adj=None):
     logger = logging.getLogger(__name__)
     logger.setLevel("INFO")
 
-    if not adj:
+    if adj is None:
         _adj = None
         while _adj != "yes" and \
             _adj != "no" and \
