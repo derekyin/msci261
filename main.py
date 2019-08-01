@@ -1,7 +1,6 @@
 from copy import copy
-from datetime import datetime
 from datetime import date
-import time
+from datetime import datetime
 from flask import request, jsonify
 from random import random
 from scipy import optimize
@@ -11,6 +10,8 @@ from yahoo_finance_api2.exceptions import YahooFinanceError
 import logging
 import numpy as np
 import sys
+import time
+import webbrowser
 
 
 def get(request):
@@ -18,9 +19,10 @@ def get(request):
 
     stock_a = request_json['a']
     stock_b = request_json['b']
+    adj = request_json['adj'] == 1
 
     if stock_a and stock_b:
-        return jsonify(main(stock_a.strip(), stock_b.strip()))
+        return jsonify(main(stock_a.strip(), stock_b.strip(), adj))
     return jsonify({})
 
 
@@ -29,14 +31,14 @@ def stddev(x, cov_matrix):
 
 
 class Stock:
-    def __init__(self, ticker):
+    def __init__(self, ticker, adj=True):
         self.ticker = ticker
         self.closing_price = []
         _data = None
 
         _share = share.Share(self.ticker)
         _data = _share.get_historical(
-            share.PERIOD_TYPE_YEAR, 2, share.FREQUENCY_TYPE_MONTH, 1)
+            share.PERIOD_TYPE_YEAR, 2, share.FREQUENCY_TYPE_MONTH, 1, adj)
         if not _data:
             raise ValueError("No data on stock {}".format(ticker))
 
@@ -208,10 +210,22 @@ def find_random_portfolio(_):
     })
 
 
-def main(ticker_a=None, ticker_b=None):
+def main(ticker_a=None, ticker_b=None, adj=None):
     logging.basicConfig()
     logger = logging.getLogger(__name__)
     logger.setLevel("INFO")
+
+    if not adj:
+        _adj = None
+        while _adj != "yes" and \
+            _adj != "no" and \
+            _adj != "n" and \
+            _adj != "y":
+                _adj = input("Use adj price?[yes/y/no/n]")
+                if _adj == "yes" or _adj == "y":
+                    adj = True
+                elif _adj == "no" or _adj == "n":
+                    adj = False
 
     if not ticker_a:
         ticker_a = input("Enter stock ticker A\n")
@@ -219,8 +233,8 @@ def main(ticker_a=None, ticker_b=None):
         ticker_b = input("Enter stock ticker B\n")
 
     try:
-        stock_A = Stock(ticker_a)
-        stock_B = Stock(ticker_b)
+        stock_A = Stock(ticker_a, adj)
+        stock_B = Stock(ticker_b, adj)
     except YahooFinanceError as e:
         return {
             "error": e.message
@@ -365,3 +379,4 @@ def random_portfolio():
 if __name__ == '__main__':
     main()
     random_portfolio()
+    webbrowser.open("https://msci261.web.app", new=1)

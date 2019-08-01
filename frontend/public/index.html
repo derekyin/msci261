@@ -27,6 +27,8 @@
                     <input v-model="inputb" type="text" id="inputb" class="form-control" placeholder="Stock B Ticker" aria-describedby="basic-addon1">
                 </div>
                 <div>
+                <b-form-checkbox class="mb-3" v-model="adj" value="1" unchecked-value="0"> Use adj price </b-form-checkbox>
+
                 <b-button :disabled="workingOnStocks" v-on:click="processStocks" variant="primary" size="lg" type="submit" id="submitbutton" class="mb-3">Submit</b-button>
                 <b-button :disabled="workingOnRandomPortfolio" v-on:click="findRandom" variant="secondary" size="lg" class="mb-3">{{this.randomButtonText}}</b-button>
                 </div>
@@ -91,6 +93,7 @@
               data: {
                   inputa: '',
                   inputb: '',
+                  adj: '1',
                   workingOnStocks: false,
                   workingOnRandomPortfolio: false,
                   show1: false,
@@ -147,7 +150,8 @@
                     this.workingOnStocks = true;
                     const data = {
                         a: this.inputa,
-                        b: this.inputb
+                        b: this.inputb,
+                        adj: parseInt(this.adj)
                     }
 
                     var settings = {

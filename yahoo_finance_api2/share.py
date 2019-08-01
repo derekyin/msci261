@@ -22,7 +22,7 @@ class Share(object):
         self.symbol = symbol
 
 
-    def get_historical(self, period_type, period, frequency_type, frequency):
+    def get_historical(self, period_type, period, frequency_type, frequency, adj):
         data = self._download_symbol_data(period_type, period,
                                           frequency_type, frequency)
 
@@ -39,11 +39,7 @@ class Share(object):
 
         return_data = {
             'timestamp': [x * 1000 for x in data['timestamp']],
-            'open': data['indicators']['quote'][0]['open'],
-            'high': data['indicators']['quote'][0]['high'],
-            'low': data['indicators']['quote'][0]['low'],
-            'close': data['indicators']['adjclose'][0]['adjclose'],
-            'volume': data['indicators']['quote'][0]['volume']
+            'close': data['indicators']['adjclose'][0]['adjclose'] if adj else data['indicators']['quote'][0]['close'],
         }
 
         return return_data
