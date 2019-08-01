@@ -182,7 +182,6 @@
                         for(row of response.stocks){
                             window.app.stocksTable.push({
                                 ticker: row.ticker.toUpperCase(),
-                                daily_return: (row.mean_daily * 100).toPrecision(3) + "%",
                                 annual_return: (row.mean_annual * 100).toPrecision(3) + "%",
                                 standard_deviation: (row.sd * 100).toPrecision(3) + "%"
                             });
